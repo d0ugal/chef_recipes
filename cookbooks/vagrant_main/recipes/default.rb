@@ -1,0 +1,6 @@
+require_recipe "apt"
+require_recipe "django"
+require_recipe "memcached"
+require_recipe "nginx"
+require_recipe "postgresql"
+require_recipe "python"
