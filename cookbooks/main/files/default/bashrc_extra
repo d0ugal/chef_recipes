@@ -1,0 +1,7 @@
+# Wire up virtualenvwrapper completion and paths.
+source /usr/local/bin/virtualenvwrapper.sh
+
+export HISTCONTROL=ignoreboth
+export HISTSIZE=50000
+export HISTIGNORE="[ ]*"
+
