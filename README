@@ -1,1 +1,12 @@
-Work in progress.
+==========================================================
+ ``Chef Recipies`` -- For working with Vagrant.
+==========================================================
+
+A set of Chef recipies that I am using to provision virtual machines with
+Vagrant for local development. They cut corner, do bad things and for this 
+reason shouldn't be used for deployment - however, they could be adapted 
+fairly easily to work well with both.
+
+Please excuse my poor attempt at Ruby. This is my first attempt, suggestions 
+and patches are welcome.
+
