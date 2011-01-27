@@ -6,6 +6,31 @@
   end
 end
 
+
+cookbook_file "/etc/postgresql/8.4/main/pg_hba.conf" do
+    source "pg_hba.conf"
+    mode 0600
+    owner "postgres"
+    group "postgres"
+end
+
+# Hackin' it up.
+
+service "postgresql" do
+  service_name "postgresql-8.4"
+  supports :restart => true, :status => true, :reload => true
+  action :restart
+end
+
+execute "postgres-listen" do
+    command "echo \"listen_addresses = '*'\" >> /etc/postgresql/8.4/main/postgresql.conf"
+    notifies :restart, resources(:service => "postgresql")
+end
+
+execute "postgres-change-password" do
+    command "sudo -u postgres psql -c \"ALTER ROLE postgres WITH PASSWORD 'postgres'\""
+end
+
 # This is basically a big hack - I can't find a nice way to create a user and
 # give them a password easily.
 execute "postgres-createuser" do
