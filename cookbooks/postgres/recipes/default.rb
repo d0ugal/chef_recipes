@@ -12,6 +12,7 @@ cookbook_file "/etc/postgresql/8.4/main/pg_hba.conf" do
     mode 0600
     owner "postgres"
     group "postgres"
+    action :create
 end
 
 # Hackin' it up.

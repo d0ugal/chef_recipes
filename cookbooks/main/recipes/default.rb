@@ -1,4 +1,4 @@
-%w{ack-grep aptitude vim}.each do |pkg|
+%w{ack-grep aptitude vim git-core subversion}.each do |pkg|
   package pkg do
     action :install
   end
@@ -18,6 +18,7 @@ cookbook_file "/home/vagrant/.bashrc_extra" do
   mode 0640
   owner "vagrant"
   group "vagrant"
+  action :create_if_missing
 end
 
 execute "source-bachrc-extra" do

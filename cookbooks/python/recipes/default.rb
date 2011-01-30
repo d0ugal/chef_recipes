@@ -9,6 +9,17 @@ execute "easy-install-pip" do
     command "easy_install pip"
 end
 
+execute "chown-home" do
+  command "sudo mkdir -p /home/vagrant/.pip/cache/"
+end
+
+cookbook_file "/home/vagrant/.pip/pip.conf" do
+  source "pip.conf"
+  mode 0640
+  owner "vagrant"
+  group "vagrant"
+  action :create_if_missing
+end
 
 ["virtualenv", "virtualenvwrapper"].each do |pkg|
 
@@ -40,6 +51,14 @@ script "setup-virtualenv" do
   "
 end
 
+cookbook_file "/home/vagrant/.virtualenvs/postactivate" do
+  source "postactivate"
+  mode 0640
+  owner "vagrant"
+  group "vagrant"
+  action :create
+end
+
 if node.has_key?("python_packages")
   node[:python_packages].each do |pkg|
     execute "pip-install-#{pkg}" do
@@ -51,3 +70,4 @@ end
 execute "chown-home" do
   command "sudo chown -R vagrant /home/vagrant"
 end
+
