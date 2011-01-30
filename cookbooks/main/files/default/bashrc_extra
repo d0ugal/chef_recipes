@@ -45,13 +45,12 @@ extract () {
 }
 
 # Prevent pip from doing anything unless you're inside an activated virtualenv.
-PIP=/usr/local/bin/pip
 function pip {
+    PIP=`which pip`
     if [ "x$VIRTUAL_ENV" = 'x' ]; then
         echo "No virtualenv activated; bailing."
     else
-        $PIP -E `basename $VIRTUAL_ENV` "$@"
+        $PIP "$@"
     fi
 }
-
 
