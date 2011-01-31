@@ -48,7 +48,7 @@ script "setup-virtualenv" do
   export WORKON_HOME=/home/vagrant/.virtualenvs
   source /usr/local/bin/virtualenvwrapper.sh
   
-  if [[ $(cat /home/vagrant/.bashrc) != *bashrc_extra* ]]
+  if [[ $(lsvirtualenv) != *#{node[:project_name]}* ]]
   then
     mkvirtualenv #{node[:project_name]}
   fi
