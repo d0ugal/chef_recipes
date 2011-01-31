@@ -1,4 +1,4 @@
-# We give away straight off that while this is a postgres recipe, its a 
+# We give away straight off that while this is a postgres recipe, its a
 # postgres recipe for Python.
 %w{postgresql python-psycopg2}.each do |pkg|
   package pkg do
@@ -36,10 +36,12 @@ end
 # give them a password easily.
 execute "postgres-createuser" do
     command "sudo -u postgres psql -c \"CREATE ROLE #{node[:project_name]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{node[:project_name]}\';\""
+    not_if "sudo -u postgres psql -c \"SELECT * FROM pg_user;\" | grep #{node['project_name']}"
 end
 
 # Create a database with the same name as the project and also with the owner
 # set to the user we just created.
 execute "postgres-createdb" do
     command "sudo -u postgres createdb -O #{node[:project_name]} #{node[:project_name]}"
+    not_if "sudo -u postgres psql -c \"SELECT * FROM pg_database;\" | grep #{node['project_name']}"
 end

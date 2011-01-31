@@ -9,7 +9,7 @@ execute "easy-install-pip" do
     command "easy_install pip"
 end
 
-execute "chown-home" do
+execute "mkdir-pip-cache" do
   command "sudo mkdir -p /home/vagrant/.pip/cache/"
 end
 
@@ -47,7 +47,11 @@ script "setup-virtualenv" do
   mkdir -p /home/vagrant/.virtualenvs
   export WORKON_HOME=/home/vagrant/.virtualenvs
   source /usr/local/bin/virtualenvwrapper.sh
-  mkvirtualenv #{node[:project_name]}
+  
+  if [[ $(cat /home/vagrant/.bashrc) != *bashrc_extra* ]]
+  then
+    mkvirtualenv #{node[:project_name]}
+  fi
   "
 end
 

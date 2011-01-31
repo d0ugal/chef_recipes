@@ -23,4 +23,5 @@ end
 
 execute "source-bachrc-extra" do
   command "echo \"source /home/vagrant/.bashrc_extra\" >> /home/vagrant/.bashrc"
+  not_if "grep bashrc_extra /home/vagrant/.bashrc" 
 end
