@@ -1,3 +1,7 @@
+execute "postgres-listen" do
+    command "sudo apt-get update"
+end
+
 %w{ack-grep aptitude vim git-core subversion}.each do |pkg|
   package pkg do
     action :install
