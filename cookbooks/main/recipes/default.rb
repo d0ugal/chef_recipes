@@ -1,4 +1,4 @@
-execute "postgres-listen" do
+execute "update-apt" do
     command "sudo apt-get update"
 end
 
