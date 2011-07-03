@@ -8,6 +8,14 @@ end
   end
 end
 
+if node[:gis]
+  %w{binutils gdal-bin}.each do |pkg|
+      package pkg do
+        action :install
+      end
+  end
+end
+
 # Allow the user to specify some other system packages to install
 if node.has_key?("system_packages")
   node[:system_packages].each do |pkg|

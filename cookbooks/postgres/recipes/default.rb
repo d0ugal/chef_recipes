@@ -6,6 +6,13 @@
   end
 end
 
+if node[:gis]
+    %w{postgresql-server-dev-8.4 postgresql-8.4-postgis}.each do |pkg|
+      package pkg do
+        action :install
+      end
+  end
+end
 
 cookbook_file "/etc/postgresql/8.4/main/pg_hba.conf" do
     source "pg_hba.conf"
@@ -39,9 +46,35 @@ execute "postgres-createuser" do
     not_if "sudo -u postgres psql -c \"SELECT * FROM pg_user;\" | grep #{node['project_name']}"
 end
 
+if node[:gis]
+  template_commands = [
+    "createdb -E UTF8 template_postgis -T template0 -l en_US.utf8",
+    "createlang -d template_postgis plpgsql",
+    "psql -d postgres -c \"UPDATE pg_database SET datistemplate='true' WHERE datname='template_postgis';\"",
+    "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/postgis.sql",
+    "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/spatial_ref_sys.sql",
+    "psql -d template_postgis -c \"GRANT ALL ON geometry_columns TO PUBLIC;\"",
+    "psql -d template_postgis -c \"GRANT ALL ON spatial_ref_sys TO PUBLIC;\""
+    ]
+
+  template_commands.each_with_index do |cmd, i|
+    execute "postgis-template-create-step-#{i+1}" do
+      command cmd
+      user "postgres"
+    end
+  end
+end
+
+if node[:gis] 
+  template = "template_postgis" 
+else 
+  template = "template0"
+end
+  
+
 # Create a database with the same name as the project and also with the owner
 # set to the user we just created.
 execute "postgres-createdb" do
-    command "sudo -u postgres createdb -O #{node[:project_name]} #{node[:project_name]}"
+    command "sudo -u postgres  createdb -T #{template} -E UTF8  -l en_US.utf8 -O #{node[:project_name]} #{node[:project_name]}"
     not_if "sudo -u postgres psql -c \"SELECT * FROM pg_database;\" | grep #{node['project_name']}"
 end

@@ -1,4 +1,4 @@
-%w{python-setuptools python-dev}.each do |pkg|
+%w{python-setuptools python-dev python-imaging}.each do |pkg|
   package pkg do
     action :install
   end
