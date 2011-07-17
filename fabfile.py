@@ -1,12 +1,12 @@
 from fabric.api import env, local, run, sudo
 
+# Taken from Eric Holschers blog.
+# Modified slightly.
+# Change host details, you may need to change the executable path if your running on a vagrant vm.
+
 env.user = 'vagrant'
 env.password = 'vagrant'
 env.hosts = ['33.33.33.15']
-
-env.code_dir = '/home/docs/sites/readthedocs.org/checkouts/readthedocs.org'
-env.virtualenv = '/home/docs/sites/readthedocs.org'
-env.rundir = '/home/docs/sites/readthedocs.org/run'
 
 #env.chef_executable = '/var/lib/gems/1.8/bin/chef-solo'
 env.chef_executable = '/usr/lib/ruby/gems/1.8/gems/chef-0.10.2/bin/chef-solo'

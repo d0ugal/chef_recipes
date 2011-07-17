@@ -43,3 +43,14 @@ extract () {
     echo "'$1' is not a valid file"
   fi
 }
+
+# Prevent pip from doing anything unless you're inside an activated virtualenv.
+function pip {
+    PIP=`which pip`
+    if [ "x$VIRTUAL_ENV" = 'x' ]; then
+        echo "No virtualenv activated; bailing."
+    else
+        $PIP "$@"
+    fi
+}
+
