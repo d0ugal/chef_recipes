@@ -8,8 +8,10 @@ Vagrant::Config.run do |config|
 
   config.vm.provision :chef_solo do |chef|
 
-    chef.recipe_url = "http://cloud.github.com/downloads/d0ugal/chef_recipes/cookbooks.tar.gz"
-    chef.cookbooks_path = [:vm, "cookbooks"]
+    #chef.recipe_url = "http://cloud.github.com/downloads/d0ugal/chef_recipes/cookbooks.tar.gz"
+    #chef.cookbooks_path = [:vm, "cookbooks"]
+
+    chef.cookbooks_path = "cookbooks"
 
     chef.add_recipe "main"
     chef.add_recipe "python"
@@ -17,7 +19,17 @@ Vagrant::Config.run do |config|
 
     chef.json.merge!({
 
-      :project_name => "PROJECT_NAME",
+      :project_name => "test_project",
+
+      :user_name => "vagrant",
+      :user_group => "vagrant",
+      :dev_env => true,
+      :postgres_password => "postgres",
+      :project_db_user => "test_project",
+      :project_db_password => "test",
+      :project_db_name => "test_project",
+      :supervisor_user => "supervisor",
+      :supervisor_password => "password",
 
       :system_packages => [],
       :python_global_packages => [],

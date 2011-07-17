@@ -13,7 +13,7 @@
   "project_db_user": "database_user",
   "project_db_pass": "database_pass",
   "django_settings_path": "",
-  "domain_names": "informeddeals.co.uk www.informeddeals.co.uk",
+  "domain_names": "exmaple.co.uk example.com",
   "repo_address": "svn://svn.address.co.uk/test_project",
   "system_packages": ["libjpeg62-dev"]
 }
