@@ -1,0 +1,8 @@
+[program:<%= node[:project_name] %>]
+command=/home/<%= node[:user_name] %>/.virtualenvs/<%= node[:project_name] %>/bin/gunicorn_django -n "<%= node[:project_name] %>" --worker-connections=3 -b unix:/tmp/<%= node[:project_name] %>.gunicorn.sock -p /tmp/<%= node[:project_name] %>.gunicorn.pid
+directory=/var/www/<%=node[:project_name] %>/<%= node[:django_settings_path] %>
+user=www-data
+autostart=true
+autorestart=true
+redirect_stderr=True
+stdout_logfile=/var/log/<%= node[:project_name] %>/supervisor.log
