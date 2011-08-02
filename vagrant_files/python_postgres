@@ -8,8 +8,8 @@ Vagrant::Config.run do |config|
 
   config.vm.provision :chef_solo do |chef|
 
-    #chef.recipe_url = "http://cloud.github.com/downloads/d0ugal/chef_recipes/cookbooks.tar.gz"
-    #chef.cookbooks_path = [:vm, "cookbooks"]
+    chef.recipe_url = "http://cloud.github.com/downloads/mathew/chef_recipes/cookbooks.tar.gz"
+    chef.cookbooks_path = [:vm, "cookbooks"]
 
     chef.cookbooks_path = "cookbooks"
 
