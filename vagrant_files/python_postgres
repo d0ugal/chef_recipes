@@ -24,7 +24,7 @@ Vagrant::Config.run do |config|
       :dev_env => true,
       :postgres_password => "postgres",
       :project_db_user => "test_project",
-      :project_db_password => "test",
+      :project_db_pass => "test",
       :project_db_name => "test_project",
       :supervisor_user => "supervisor",
       :supervisor_password => "password",
