@@ -17,36 +17,38 @@ if node.has_key?("system_packages")
   end
 end
 
-user node[:user_name] do 
-    shell "/bin/bash"
-    supports :manage_home => true
-    home "/home/#{node[:user_name]}"
-end
+if node.has_key?("dev_env")
+    user node[:user_name] do 
+        shell "/bin/bash"
+        supports :manage_home => true
+        home "/home/#{node[:user_name]}"
+    end
 
-directory "/home/#{node[:user_name]}/.ssh" do
-    owner node[:user_name]
-    group node[:user_name]
-    mode 0700
-end
+    directory "/home/#{node[:user_name]}/.ssh" do
+        owner node[:user_name]
+        group node[:user_name]
+        mode 0700
+    end
 
-if node.has_key?("ssh_key")
-    file "/home/#{node[:user_name]}/.ssh/authorized_keys" do
+    if node.has_key?("ssh_key")
+        file "/home/#{node[:user_name]}/.ssh/authorized_keys" do
+            owner node[:user_name]
+            group node[:user_group]
+            mode 0600
+            content node[:ssh_key]
+        end
+    end
+
+    group node[:user_group] do
+        members node[:user_name]
+        append true
+    end
+
+    directory "/home/#{node[:user_name]}" do
         owner node[:user_name]
         group node[:user_group]
-        mode 0600
-        content node[:ssh_key]
+        mode 0775
     end
-end
-
-group node[:user_group] do
-    members node[:user_name]
-    append true
-end
-
-directory "/home/#{node[:user_name]}" do
-    owner node[:user_name]
-    group node[:user_group]
-    mode 0775
 end
 
 cookbook_file "/home/#{node[:user_name]}/.bashrc_extra" do
