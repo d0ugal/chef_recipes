@@ -17,7 +17,7 @@ if node.has_key?("system_packages")
   end
 end
 
-if node.has_key?("dev_env")
+if not node.has_key?("dev_env")
     user node[:user_name] do 
         shell "/bin/bash"
         supports :manage_home => true
