@@ -30,7 +30,7 @@ end
 end
 
 if node.has_key?("python_global_packages")
-  node[:python_packages].each do |pkg|
+  node[:python_global_packages].each do |pkg|
     execute "pip-global-install-#{pkg}" do
       command "pip install #{pkg}"
     end
@@ -38,7 +38,7 @@ if node.has_key?("python_global_packages")
 end
 
 # This isn't fully working as it should be run as the project name root but
-# that seems to be cusing problems.
+# that seems to be causing problems.
 script "setup-virtualenv" do
   interpreter "bash"
   user "root"
