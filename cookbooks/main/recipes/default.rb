@@ -8,7 +8,7 @@ execute "update-apt" do
 end
 
 # Install Ack, Git, Hg, SVN, xml libs and jpeg libs.
-%w{ack-grep aptitude vim git-core subversion mercurial libxml2-dev 
+%w{psmisc ack-grep aptitude vim git-core subversion mercurial libxml2-dev 
   libjpeg62-dev zlib1g-dev}.each do |pkg|
   package pkg do
     action :install
@@ -25,17 +25,51 @@ if node.has_key?("system_packages")
   end
 end
 
-# Add a bashrc_extra file that is loaded in the bashrc and used to setup a few
-# aliases and other useful bash related features.
-cookbook_file "/home/vagrant/.bashrc_extra" do
+if not node.has_key?("dev_env")
+
+    user node[:user_name] do 
+        shell "/bin/bash"
+        supports :manage_home => true
+        home "/home/#{node[:user_name]}"
+    end
+
+    directory "/home/#{node[:user_name]}/.ssh" do
+        owner node[:user_name]
+        group node[:user_name]
+        mode 0700
+    end
+
+    if node.has_key?("ssh_key")
+        file "/home/#{node[:user_name]}/.ssh/authorized_keys" do
+            owner node[:user_name]
+            group node[:user_group]
+            mode 0600
+            content node[:ssh_key]
+        end
+    end
+
+    group node[:user_group] do
+        members node[:user_name]
+        append true
+    end
+
+    directory "/home/#{node[:user_name]}" do
+        owner node[:user_name]
+        group node[:user_group]
+        mode 0775
+    end
+    
+end
+
+cookbook_file "/home/#{node[:user_name]}/.bashrc_extra" do
   source "bashrc_extra"
   mode 0640
-  owner "vagrant"
-  group "vagrant"
+  owner node[:user_name]
+  group node[:user_group]
   action :create_if_missing
 end
 
 execute "source-bachrc-extra" do
-  command "echo \"source /home/vagrant/.bashrc_extra\" >> /home/vagrant/.bashrc"
-  not_if "grep bashrc_extra /home/vagrant/.bashrc" 
+  command "echo \"source /home/#{node[:user_name]}/.bashrc_extra\" >> /home/#{node[:user_name]}/.bashrc"
+  not_if "grep bashrc_extra /home/#{node[:user_name]}/.bashrc" 
 end
