@@ -1,9 +1,14 @@
+=begin
+  This recipe is designed to setup a fairly generic python einiroment. Adding
+  the system packages that are required, installing pip and setting up 
+  everything required to then add virtualenvs.
+=end
+
 %w{python-setuptools python-dev}.each do |pkg|
   package pkg do
     action :install
   end
 end
-
 
 execute "easy-install-pip" do
     command "easy_install pip"
@@ -37,8 +42,8 @@ if node.has_key?("python_global_packages")
   end
 end
 
-# This isn't fully working as it should be run as the project name root but
-# that seems to be causing problems.
+# This is a bit of a hack. At the moment it is creating the virtualenv as root
+# since creating as the custom user doesn't seem to be working.
 script "setup-virtualenv" do
   interpreter "bash"
   user "root"
@@ -71,6 +76,7 @@ if node.has_key?("python_packages")
   end
 end
 
+# finally we change everything to the vagrant user
 execute "chown-home" do
   command "sudo chown -R vagrant /home/vagrant"
 end
