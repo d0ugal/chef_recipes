@@ -10,7 +10,7 @@ import time
 
 from boto.ec2 import EC2Connection, get_region
 from boto.exception import EC2ResponseError
-from fabric.api import env, settings
+from fabric.api import env, settings, run, hide
 from fabric.network import disconnect_all
 from unipath import Path
 
@@ -121,12 +121,22 @@ class TestRunner(object):
 
         with settings(host_string=host_string, key_filename=key_filename, user=user):
 
-            print 'OK!'
-            install_chef()
-            sync_config()
-            sites()
-            update_all()
-            print "DONE!"
+            with hide('stdout',):
+
+                print 'OK! Started.'
+
+                install_chef()
+                print "1/4 Chef installed."
+
+                sync_config()
+                print "2/4 Config Synced."
+
+                sites()
+                print "3/4 Sites listed."
+
+                update_all()
+                print "4/4 Full update."
+
 
     def tear_down(self):
 

@@ -1,5 +1,5 @@
 {
-  "run_list": [ "main", "python", "postgres",],
+  "run_list": [ "main", "python", "postgres"],
   "user_name": "new_user",
   "user_password": "new_user_password",
   "user_group": "user_group",
