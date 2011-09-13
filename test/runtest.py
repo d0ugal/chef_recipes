@@ -1,3 +1,8 @@
+"""
+Warning. This file contains a few hacks. None of the code should be used in a 
+production like setting and should only be used for testing/working on the 
+recepies defined in this project.
+"""
 import os
 import sys
 import tempfile
@@ -7,7 +12,6 @@ from boto.ec2 import EC2Connection, get_region
 from boto.exception import EC2ResponseError
 from fabric.api import settings
 from fabric.network import disconnect_all
-from paramiko import PKey
 from unipath import Path
 
 sys.path.insert(0, Path(Path.cwd(), ".."))
@@ -104,7 +108,7 @@ class TestRunner(object):
         from fabfile import install_chef, sync_config, sites, update_all
                 
         with settings(host_string=host_string, key_filename=key_filename, user=user):
-            
+
             print 'OK!'
             install_chef()
             sync_config()
