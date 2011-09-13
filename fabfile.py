@@ -2,7 +2,7 @@ from os.path import dirname, abspath
 
 from fabric.api import env, sudo, cd, put
 
-env.chef_executable = 'chef-solo'
+env.chef_executable = '/var/lib/gems/1.8/bin/chef-solo'
 env.project_dir = dirname(abspath(__file__))
 env.site_configs = "%s/%s" % (env.project_dir, 'site_configs',)
 

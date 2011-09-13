@@ -1,5 +1,5 @@
 {
-  "run_list": [ "main", "python", "postgres", "nginx", "supervisor", "gunicorn", "deploy_svn"],
+  "run_list": [ "main", "python", "postgres",],
   "user_name": "new_user",
   "user_password": "new_user_password",
   "user_group": "user_group",
@@ -15,5 +15,5 @@
   "django_settings_path": "",
   "domain_names": "exmaple.co.uk example.com",
   "repo_address": "svn://svn.address.co.uk/test_project",
-  "system_packages": ["libjpeg62-dev"]
+  "system_packages": []
 }
