@@ -1,6 +1,6 @@
 """
-Warning. This file contains a few hacks. None of the code should be used in a 
-production like setting and should only be used for testing/working on the 
+Warning. This file contains a few hacks. None of the code should be used in a
+production like setting and should only be used for testing/working on the
 recepies defined in this project.
 """
 import os
@@ -14,40 +14,37 @@ from fabric.api import env, settings, run, hide
 from fabric.network import disconnect_all
 from unipath import Path
 
-# HACK: Manually insert the fabfile we are interested to the start of the 
+# HACK: Manually insert the fabfile we are interested to the start of the
 # python path. This is pretty nasty, but if its not added fabric pulls the
 # fabfile from site-packages.
 sys.path.insert(0, Path(__file__).absolute().parent.parent)
-from fabfile import install_chef, sync_config, sites, update_all
+from fabfile import install_chef, update_all_sites
 
 def create_vm():
 
     try:
-        kwargs = {
-            'aws_access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
-            'aws_secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY'],
-            'region': get_region('eu-west-1'),
-        }
+        os.environ['AWS_ACCESS_KEY_ID']
+        os.environ['AWS_SECRET_ACCESS_KEY']
     except KeyError:
         print '*' * 50
         print "You must set both the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY enviroment variables."
         print '*' * 50
         raise
 
-    ec2 = EC2Connection(**kwargs)
+    ec2 = EC2Connection(region=get_region('eu-west-1'))
 
     vm_name = 'chef_recipes_test'
 
-    instance_ids = [reservation.instances[0].id for reservation 
-        in ec2.get_all_instances() 
+    instance_ids = [reservation.instances[0].id for reservation
+        in ec2.get_all_instances()
         if reservation.instances[0].key_name == vm_name]
 
     if instance_ids:
         ec2.terminate_instances(instance_ids)
 
 
-    # Check the keypair exists, if it does delete it and re-create it. We do 
-    # this as we don't really want to store the key - its throw away and 
+    # Check the keypair exists, if it does delete it and re-create it. We do
+    # this as we don't really want to store the key - its throw away and
     # we are only given the private part once, fetching again from ec2 doesn't
     # seem to work - at least, it doesn't work through boto.
     # (Interestingly get_key_pair should return None if its not found acording
@@ -57,7 +54,7 @@ def create_vm():
         ec2.delete_key_pair(vm_name)
     except EC2ResponseError:
         pass
-    
+
     key_pair = ec2.create_key_pair(vm_name)
 
     # Check the security group exists, if it doesn't - create it.
@@ -75,7 +72,7 @@ def create_vm():
     # Create a reservation - the image is an ubuntu machine.
     reservation = ec2.run_instances(image_id='ami-4a34013e',
             key_name='chef_recipes_test', security_groups=['chef_recipes_test',])
-    
+
     instance = reservation.instances[0]
 
     print "Started VM, Waiting for VM to be 'running'"
@@ -88,7 +85,7 @@ def create_vm():
             break
 
     # Even after its running, we need a short delay before we can connect.
-    time.sleep(30)
+    time.sleep(60)
 
     print "OK! Ready. Lets do this."
 
@@ -100,12 +97,13 @@ def create_vm():
     key_filename = key_file.name
 
     return {
-        'host_string': host_string, 
+        'host_string': host_string,
         'user': user,
         'key_pair' : key_pair,
         'key_filename' : key_filename,
         'instance': instance,
     }
+
 
 class TestRunner(object):
 
@@ -121,28 +119,27 @@ class TestRunner(object):
 
         with settings(host_string=host_string, key_filename=key_filename, user=user):
 
-            with hide('stdout',):
+            try:
+                with hide():#'stdout',):
 
-                print 'OK! Started.'
+                    print 'OK! Started.'
 
-                install_chef()
-                print "1/4 Chef installed."
+                    install_chef()
+                    print "-- Chef installed."
 
-                sync_config()
-                print "2/4 Config Synced."
-
-                sites()
-                print "3/4 Sites listed."
-
-                update_all()
-                print "4/4 Full update."
+                    update_all_sites()
+                    print "-- Full update."
+            except:
+                print "Something went wrong, lets jump to bash."
+                run('bash')
+                raise
 
 
     def tear_down(self):
 
         disconnect_all()
+
         try:
-            print "Terminating the VM"
             self.instance.terminate()
         except AttributeError:
             pass
@@ -158,6 +155,7 @@ class TestRunner(object):
         try:
             self.setup()
         finally:
+            print "Terminatindg the VM"
             self.tear_down()
 
 

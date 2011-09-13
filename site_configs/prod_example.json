@@ -1,0 +1,34 @@
+{
+    "run_list": [ "main", "python", "postgres"],
+
+    "project_name": "test_project",
+
+    "user": {
+        "username": "mysite",
+        "password": "mysitepassword",
+        "group": "mysiteusers"
+    },
+
+    "virtualenvs": {
+        "mysite" : {
+            "packages": ["ipython", "PIL"]
+        },
+        "mysite2" : {
+        }
+    },
+
+    "postgres_password": "postgres",
+
+    "databases": {
+        "my_database": {
+            "username": "my_user",
+            "password": "password"
+        },
+        "my_database": {
+            "username": "my_user",
+            "password": "password",
+            "gis": true
+        }
+    }
+
+}

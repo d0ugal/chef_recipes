@@ -6,25 +6,24 @@
   end
 end
 
-if node.has_key?("dev_env")
-    cookbook_file "/etc/postgresql/8.4/main/pg_hba.conf" do
-        source "pg_hba_dev.conf"
-        mode 0600
-        owner "postgres"
-        group "postgres"
-        action :create
-    end
+pg_hba_dev = node.has_key?("dev_env") and node.dev_env
+
+
+if pg_hba_dev
+    pg_hba_conf = "/etc/postgresql/8.4/main/pg_hba_dev.conf"
+    pg_hba_conf_source = "pg_hba_dev.conf"
 else
-    cookbook_file "/etc/postgresql/8.4/main/pg_hba.conf" do
-        source "pg_hba.conf"
-        mode 0600
-        owner "postgres"
-        group "postgres"
-        action :create
-    end
+    pg_hba_conf = "/etc/postgresql/8.4/main/pg_hba.conf"
+    pg_hba_conf_source = "pg_hba.conf"
 end
 
-# Hackin' it up.
+cookbook_file pg_hba_conf do
+    source pg_hba_conf_source
+    mode 0600
+    owner "postgres"
+    group "postgres"
+    action :create
+end
 
 service "postgresql" do
   service_name "postgresql-8.4"
@@ -32,30 +31,36 @@ service "postgresql" do
   action :restart
 end
 
-if node.has_key?("dev_env")
+if pg_hba_dev
     execute "postgres-listen" do
         command "echo \"listen_addresses = 'localhost'\" >> /etc/postgresql/8.4/main/postgresql.conf"
         notifies :restart, resources(:service => "postgresql")
     end
 end
 
-execute "postgres-change-password" do
-    command "sudo -u postgres psql -c \"ALTER ROLE postgres WITH PASSWORD '#{node[:postgres_password]}'\""
+if node.has_key?("postgres_password")
+    execute "postgres-change-password" do
+        command "sudo -u postgres psql -c \"ALTER ROLE postgres WITH PASSWORD '#{node[:postgres_password]}'\""
+    end
 end
 
-if node.has_key?("project_name")
-    # This is basically a big hack - I can't find a nice way to create a user and
-    # give them a password easily.
-    execute "postgres-createuser" do
-        command "sudo -u postgres psql -c \"CREATE ROLE #{node[:project_db_user]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{node[:project_db_pass]}\';\""
-        not_if "sudo -u postgres psql -c \"SELECT * FROM pg_user;\" | grep -i #{node['project_db_user']}"
+
+if node.has_key?("databases")
+
+    node.databases.each do |name, info|
+
+        execute "postgres-createuser-#{info[:username]}" do
+            command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
+            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{node['project_db_user']}"
+        end
+
+        template = "template0"
+
+        execute "postgres-createdb-#{info[:name]}" do
+            command "sudo -u postgres -- createdb -T #{template} -E UTF8 -O #{info[:username]} #{name}"
+            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_database;\" | grep -i #{name}"
+        end
+
     end
 
-  template = "template0"
-    # Create a database with the same name as the project and also with the owner
-    # set to the user we just created.
-    execute "postgres-createdb" do
-        command "sudo -u postgres -p #{node[:postgres_password]} createdb -T #{template} -E UTF8  -l en_US.utf8 -O #{node[:project_db_user]} #{node[:project_db_name]}"
-        not_if "sudo -u postgres -p #{node[:postgres_password]} psql -c \"SELECT * FROM pg_database;\" | grep -i #{node[:'project_db_name']}"
-    end
 end
