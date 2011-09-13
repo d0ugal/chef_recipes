@@ -10,11 +10,15 @@ import time
 
 from boto.ec2 import EC2Connection, get_region
 from boto.exception import EC2ResponseError
-from fabric.api import settings
+from fabric.api import env, settings
 from fabric.network import disconnect_all
 from unipath import Path
 
-sys.path.insert(0, Path(Path.cwd(), ".."))
+# HACK: Manually insert the fabfile we are interested to the start of the 
+# python path. This is pretty nasty, but if its not added fabric pulls the
+# fabfile from site-packages.
+sys.path.insert(0, Path(__file__).absolute().parent.parent)
+from fabfile import install_chef, sync_config, sites, update_all
 
 def create_vm():
 
@@ -33,6 +37,14 @@ def create_vm():
     ec2 = EC2Connection(**kwargs)
 
     vm_name = 'chef_recipes_test'
+
+    instance_ids = [reservation.instances[0].id for reservation 
+        in ec2.get_all_instances() 
+        if reservation.instances[0].key_name == vm_name]
+
+    if instance_ids:
+        ec2.terminate_instances(instance_ids)
+
 
     # Check the keypair exists, if it does delete it and re-create it. We do 
     # this as we don't really want to store the key - its throw away and 
@@ -105,8 +117,8 @@ class TestRunner(object):
         print "RSA KEY:\n", key_pair.material
         print
 
-        from fabfile import install_chef, sync_config, sites, update_all
-                
+        env.hosts = [host_string,]
+
         with settings(host_string=host_string, key_filename=key_filename, user=user):
 
             print 'OK!'

@@ -1,7 +1,10 @@
-from fabric.api import env, local, sudo, cd
+from os.path import dirname, abspath
+
+from fabric.api import env, sudo, cd, put
 
 env.chef_executable = 'chef-solo'
-
+env.project_dir = dirname(abspath(__file__))
+env.site_configs = "%s/%s" % (env.project_dir, 'site_configs',)
 
 def install_chef():
     sudo('apt-get update', pty=True)
@@ -13,7 +16,7 @@ def install_chef():
 
 
 def sync_config():
-    local('sudo rsync -av . %s@%s:/var/chef' % (env.user, env.hosts[0]))
+    put(env.project_dir, '/var/chef')
 
 
 def update():
@@ -30,19 +33,19 @@ def _update_site(site):
 def update_all():
     import os
     sync_config()
-    for site in [f for f in os.listdir('site_configs') if f[-5:] == '.json']:
+    for site in [f for f in os.listdir(env.site_configs) if f.endswith('.json')]:
         _update_site(site)
 
 
 def update_site(site):
     import os
     sync_config()
-    if site in os.listdir('site_configs'):
+    if site in os.listdir(env.site_configs):
         _update_site(site)
 
 
 def sites():
     import os
 
-    for site in os.listdir('site_configs'):
+    for site in os.listdir(env.site_configs):
         print site
