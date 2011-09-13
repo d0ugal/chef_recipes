@@ -1,15 +1,7 @@
-from fabric.api import env, local, run, sudo
+from fabric.api import env, local, sudo, cd
 
-# Taken from Eric Holschers blog.
-# Modified slightly.
-# Change host details, you may need to change the executable path if your running on a vagrant vm.
+env.chef_executable = 'chef-solo'
 
-env.user = 'vagrant'
-env.password = 'vagrant'
-env.hosts = ['33.33.33.15']
-
-env.chef_executable = '/var/lib/gems/1.8/bin/chef-solo'
-#env.chef_executable = '/usr/lib/ruby/gems/1.8/gems/chef-0.10.2/bin/chef-solo'
 
 def install_chef():
     sudo('apt-get update', pty=True)
@@ -19,24 +11,38 @@ def install_chef():
     sudo('mkdir -p /var/chef')
     sudo('chown %s /var/chef' % (env.user))
 
+
 def sync_config():
     local('sudo rsync -av . %s@%s:/var/chef' % (env.user, env.hosts[0]))
 
+
 def update():
     sync_config()
-    sudo('cd /var/chef && %s' % env.chef_executable, pty=True)
+    with cd('/var/chef'):
+        sudo('%s' % env.chef_executable, pty=True)
+
+
+def _update_site(site):
+    with cd('/var/chef'):
+        sudo('%s -j site_configs/%s' % (env.chef_executable, site), pty=True)
+
 
 def update_all():
-    sync_config()
     import os
+    sync_config()
+    for site in [f for f in os.listdir('site_configs') if f[-5:] == '.json']:
+        _update_site(site)
 
-    for file in [f for f in os.listdir('site_configs') if f[-5:] == '.json']:
-        sudo('cd /var/chef && %s -j site_configs/%s' % (env.chef_executable, file), pty=True)
 
 def update_site(site):
-    sync_config()
     import os
+    sync_config()
     if site in os.listdir('site_configs'):
-        sudo('cd /var/chef && %s -j site_configs/%s' % (env.chef_executable, site), pty=True)
-        
-    print site
+        _update_site(site)
+
+
+def sites():
+    import os
+
+    for site in os.listdir('site_configs'):
+        print site
