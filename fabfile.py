@@ -5,6 +5,7 @@ from fabric.api import env, sudo, cd, put
 env.chef_executable = '/var/lib/gems/1.8/bin/chef-solo'
 env.project_dir = dirname(abspath(__file__))
 env.site_configs = "%s/%s" % (env.project_dir, 'site_configs',)
+env.site_configs_remote = "/var/chef/site_configs/"
 
 def install_chef():
     sudo('apt-get update', pty=True)
@@ -27,7 +28,9 @@ def update():
 
 def _update_site(site):
     with cd('/var/chef'):
-        sudo('%s -j site_configs/%s' % (env.chef_executable, site), pty=True)
+        chef = env.chef_executable
+        configs = env.site_configs_remote
+        sudo('%s -j %s%s' % (chef, configs, site), pty=True)
 
 
 def update_all():
