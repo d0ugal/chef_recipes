@@ -1,5 +1,6 @@
 import os
 import sys
+import tempfile
 import time
 
 from boto.ec2 import EC2Connection, get_region
@@ -29,16 +30,19 @@ def create_vm():
 
     vm_name = 'chef_recipes_test'
 
-    # Check the keypair exists, if it doesn't - create it.
-    # The boto docs claim None is returned if it doesn't exist, but actually
-    # an EC2ResponseError is raised.
+    # Check the keypair exists, if it does delete it and re-create it. We do 
+    # this as we don't really want to store the key - its throw away and 
+    # we are only given the private part once, fetching again from ec2 doesn't
+    # seem to work - at least, it doesn't work through boto.
+    # (Interestingly get_key_pair should return None if its not found acording
+    # to the boto docs but it raises an exception.)
     try:
-        key_pair = ec2.get_key_pair(vm_name)
+        ec2.get_key_pair(vm_name)
+        ec2.delete_key_pair(vm_name)
     except EC2ResponseError:
-        key_pair = None
+        pass
     
-    if not key_pair:
-        ec2.create_key_pair(vm_name)
+    key_pair = ec2.create_key_pair(vm_name)
 
     # Check the security group exists, if it doesn't - create it.
     # The boto docs claim None is returned if it doesn't exist, but actually
@@ -75,30 +79,32 @@ def create_vm():
     host_string = instance.public_dns_name
     user = 'ubuntu'
 
+    key_file = tempfile.NamedTemporaryFile(delete=False)
+    key_file.write(key_pair.material)
+    key_filename = key_file.name
+
     return {
         'host_string': host_string, 
         'user': user,
         'key_pair' : key_pair,
+        'key_filename' : key_filename,
         'instance': instance,
     }
 
 class TestRunner(object):
 
-    def test(self, host_string, user, key_pair):
+    def test(self, host_string, user, key_pair, key_filename):
 
-        print host_string
-        print key_pair.fingerprint
-        print key_pair
-        print dir(key_pair)
-        print user
-
-        pkey = PKey(data=key_pair.fingerprint)
-        print pkey
-        return
+        print "HOST:", host_string
+        print "USER:", user
+        print "TEMP KEY FILE:", key_filename
+        print "RSA KEY:\n", key_pair.material
+        print
 
         from fabfile import install_chef, sync_config, sites, update_all
                 
-        with settings(host_string=host_string, pkey=pkey, user=user):
+        with settings(host_string=host_string, key_filename=key_filename, user=user):
+            
             print 'OK!'
             install_chef()
             sync_config()
