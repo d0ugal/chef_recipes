@@ -75,7 +75,7 @@ if node.has_key?("user")
                 code "
                 export WORKON_HOME=/home/#{user_info[:username]}/.virtualenvs
                 source /usr/local/bin/virtualenvwrapper.sh
-                if [[ $(lsvirtualenv) != *#{name}* ]]
+                if [ ! -d \"$WORKON_HOME/#{name}\" ]
                 then
                 mkvirtualenv #{name}
                 fi
