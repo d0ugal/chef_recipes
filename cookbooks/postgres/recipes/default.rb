@@ -6,13 +6,6 @@
   end
 end
 
-if node[:gis]
-    %w{postgresql-server-dev-8.4 postgresql-8.4-postgis}.each do |pkg|
-      package pkg do
-        action :install
-      end
-  end
-end
 
 pg_hba_dev = node.has_key?("dev_env") and node.dev_env
 
@@ -56,43 +49,54 @@ if node.has_key?("databases")
 
     node.databases.each do |name, info|
 
-        execute "postgres-createuser-#{info[:username]}" do
-            command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
-            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{info[:username]}"
-        end
-
-        template = "template0"
-
-        if info.has_key?("gis") and info[:gis]
-          template_commands = [
-            "createdb -E UTF8 template_postgis -T template0",
-            "createlang -d template_postgis plpgsql",
-            "psql -d postgres -c \"UPDATE pg_database SET datistemplate='true' WHERE datname='template_postgis';\"",
-            "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/postgis.sql",
-            "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/spatial_ref_sys.sql",
-            "psql -d template_postgis -c \"GRANT ALL ON geometry_columns TO PUBLIC;\"",
-            "psql -d template_postgis -c \"GRANT ALL ON spatial_ref_sys TO PUBLIC;\""
-          ]
-
-          template_commands.each_with_index do |cmd, i|
-            execute "postgis-template-create-step-#{i+1}" do
-              command cmd
-              user "postgres"
+      # This isn't the best place to put it. Since we could try and install all
+      # the GIS stuff for each database... although given that the package
+      # management stuff is all good this shouldn't be a problem.
+      if info.has_key?("gis") and info[:gis]
+          %w{postgresql-server-dev-8.4 postgresql-8.4-postgis}.each do |pkg|
+            package pkg do
+              action :install
             end
+        end
+      end
+
+      execute "postgres-createuser-#{info[:username]}" do
+          command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
+          not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{info[:username]}"
+      end
+
+      template = "template0"
+
+      if info.has_key?("gis") and info[:gis]
+        template_commands = [
+          "createdb -E UTF8 template_postgis -T template0",
+          "createlang -d template_postgis plpgsql",
+          "psql -d postgres -c \"UPDATE pg_database SET datistemplate='true' WHERE datname='template_postgis';\"",
+          "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/postgis.sql",
+          "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/spatial_ref_sys.sql",
+          "psql -d template_postgis -c \"GRANT ALL ON geometry_columns TO PUBLIC;\"",
+          "psql -d template_postgis -c \"GRANT ALL ON spatial_ref_sys TO PUBLIC;\""
+        ]
+
+        template_commands.each_with_index do |cmd, i|
+          execute "postgis-template-create-step-#{i+1}" do
+            command cmd
+            user "postgres"
           end
-
         end
 
-        if info.has_key?("gis") and info[:gis]
-          template = "template_postgis"
-        else
-          template = "template0"
-        end
+      end
 
-        execute "postgres-createdb-#{info[:name]}" do
-            command "sudo -u postgres -- createdb -T #{template} -E UTF8 -O #{info[:username]} #{name}"
-            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_database;\" | grep -i #{name}"
-        end
+      if info.has_key?("gis") and info[:gis]
+        template = "template_postgis"
+      else
+        template = "template0"
+      end
+
+      execute "postgres-createdb-#{info[:name]}" do
+          command "sudo -u postgres -- createdb -T #{template} -E UTF8 -O #{info[:username]} #{name}"
+          not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_database;\" | grep -i #{name}"
+      end
 
     end
 
