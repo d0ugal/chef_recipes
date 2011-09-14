@@ -58,7 +58,7 @@ if node.has_key?("databases")
 
         execute "postgres-createuser-#{info[:username]}" do
             command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
-            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{node['project_db_user']}"
+            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{info[:username]}"
         end
 
         template = "template0"
