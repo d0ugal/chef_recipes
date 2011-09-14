@@ -13,6 +13,9 @@ env.remote_project_dir = '/var/chef'
 env.remote_site_configs = "%s/chef_recipes/site_configs/" % (env.remote_project_dir)
 env.remote_cookbooks_path = "%s/chef_recipes/cookbooks" % (env.remote_project_dir, )
 
+# Undocumented feature to remove the prefix from the output.
+env.output_prefix = False
+
 @task
 def install_chef():
     sudo('apt-get -y update', pty=True)
@@ -36,7 +39,7 @@ def _update_site(site):
         sudo('{chef} -j {configs}{site} -c {proj_dir}/solo.rb'.format(
             chef = env.chef_executable, configs = env.remote_site_configs,
             site = site, proj_dir = env.remote_project_dir
-        ), pty=True)
+        ), pty=False)
 
 @task
 def update_all_sites():
