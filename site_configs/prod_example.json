@@ -24,7 +24,7 @@
             "username": "my_user",
             "password": "password"
         },
-        "my_database": {
+        "my_second_database": {
             "username": "my_user",
             "password": "password",
             "gis": true
