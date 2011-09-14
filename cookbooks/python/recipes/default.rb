@@ -68,6 +68,7 @@ if node.has_key?("user")
     if node.has_key?("virtualenvs")
 
         node.virtualenvs.each do |name, info|
+
             script "create-virtualenv" do
                 interpreter "bash"
                 user "root"
@@ -82,7 +83,7 @@ if node.has_key?("user")
                 "
             end
 
-            cookbook_file "/home/#{name}/.virtualenvs/postactivate" do
+            cookbook_file "/home/#{user_info[:username]}/.virtualenvs/postactivate" do
                 source "postactivate"
                 mode 0640
                 owner user_info[:username]
@@ -91,7 +92,7 @@ if node.has_key?("user")
             end
 
             if info.has_key?("packages")
-                info.packages.each do |pkg|
+                info['packages'].each do |pkg|
                     execute "pip-install-#{pkg}" do
                         command "/home/#{user_info[:username]}/.virtualenvs/#{name}/bin/pip install #{pkg}"
                     end
