@@ -1,0 +1,30 @@
+{
+    "run_list": [ "main", "python", "postgres"],
+
+    "user": {
+        "username": "pug_user",
+        "password": "pug_user_password",
+        "group": "app_users"
+    },
+
+    "virtualenvs": {
+        "blog" : {
+            "packages": ["ipython", "PIL"]
+        },
+        "wiki" : {
+        }
+    },
+
+    "databases": {
+        "blog": {
+            "username": "blog_user",
+            "password": "blog_password"
+        },
+        "wiki": {
+            "username": "wiki_user",
+            "password": "wiki_password",
+            "gis": true
+        }
+    }
+
+}

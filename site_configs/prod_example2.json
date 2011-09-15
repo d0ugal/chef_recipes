@@ -1,0 +1,44 @@
+{
+    "run_list": [ "main", "python", "postgres"],
+
+    "user": {
+        "username": "enterprise_user",
+        "password": "enterprise_password",
+        "group": "app_users"
+    },
+
+    "virtualenvs": {
+        "enterprise_app1" : {
+            "packages": ["ipython", "PIL"]
+        },
+        "enterprise_app2" : {
+        },
+        "enterprise_app3" : {
+            "packages": ["ipython", "PIL    "]
+        },
+        "enterprise_app4" : {
+        }
+    },
+
+    "databases": {
+        "enterprise_database1": {
+            "username": "enterprise_user",
+            "password": "password"
+        },
+        "enterprise_database2": {
+            "username": "enterprise_user",
+            "password": "password",
+            "gis": true
+        },
+        "enterprise_database3": {
+            "username": "enterprise_user",
+            "password": "password"
+        },
+        "enterprise_database4": {
+            "username": "enterprise_user",
+            "password": "password",
+            "gis": true
+        }
+    }
+
+}

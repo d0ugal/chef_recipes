@@ -16,23 +16,8 @@ Vagrant::Config.run do |config|
     chef.add_recipe "postgres"
 
     chef.json.merge!({
-
       :project_name => "test_project",
-
-      :user_name => "vagrant",
-      :user_group => "vagrant",
-      :dev_env => true,
-      :postgres_password => "postgres",
-      :project_db_user => "test_project",
-      :project_db_pass => "test",
-      :project_db_name => "test_project",
-      :supervisor_user => "supervisor",
-      :supervisor_password => "password",
-
-      :system_packages => [],
-      :python_global_packages => [],
-      :python_packages => [],
-
+      :development_environment => true
     })
 
   end
