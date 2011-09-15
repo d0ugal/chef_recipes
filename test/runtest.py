@@ -129,6 +129,9 @@ class TestRunner(object):
 
                     update_all_sites()
                     print "-- Full update."
+
+                    update_all_sites()
+                    print "-- SECOND Full update."
             except:
                 print "Something went wrong, lets jump to bash."
                 run('bash')
