@@ -7,7 +7,7 @@
 end
 
 
-pg_hba_dev = node.has_key?("dev_env") and node.dev_env
+pg_hba_dev = node['development_environment']
 
 if pg_hba_dev
     pg_hba_conf = "/etc/postgresql/8.4/main/pg_hba_dev.conf"
@@ -38,7 +38,7 @@ if pg_hba_dev
     end
 end
 
-if node.has_key?("postgres_password")
+if node['development_environment'] and node.has_key?("postgres_password")
     execute "postgres-change-password" do
         command "sudo -u postgres psql -c \"ALTER ROLE postgres WITH PASSWORD '#{node[:postgres_password]}'\""
     end

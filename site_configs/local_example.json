@@ -1,7 +1,5 @@
 {
     "run_list": [ "main", "python", "postgres"],
-
-    "project_name": "local_test_project",
-    "dev_env": true
-
+    "development_environment": true,
+    "postgres_password": "postgres"
 }

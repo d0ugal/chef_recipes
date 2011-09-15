@@ -1,32 +1,28 @@
 {
     "run_list": [ "main", "python", "postgres"],
 
-    "project_name": "test_project",
-
     "user": {
-        "username": "mysite",
-        "password": "mysitepassword",
-        "group": "mysiteusers"
+        "username": "pug_user",
+        "password": "pug_user_password",
+        "group": "app_users"
     },
 
     "virtualenvs": {
-        "mysite" : {
+        "blog" : {
             "packages": ["ipython", "PIL"]
         },
-        "mysite2" : {
+        "wiki" : {
         }
     },
 
-    "postgres_password": "postgres",
-
     "databases": {
-        "my_database": {
-            "username": "my_user",
-            "password": "password"
+        "blog": {
+            "username": "blog_user",
+            "password": "blog_password"
         },
-        "my_second_database": {
-            "username": "my_user",
-            "password": "password",
+        "wiki": {
+            "username": "wiki_user",
+            "password": "wiki_password",
             "gis": true
         }
     }
