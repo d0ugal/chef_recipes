@@ -1,0 +1,48 @@
+{
+    "run_list": [ "main", "python", "postgres"],
+
+    "project_name": "test_project",
+
+    "user": {
+        "username": "my2site",
+        "password": "my2sitepassword",
+        "group": "my2siteusers"
+    },
+
+    "virtualenvs": {
+        "my2site" : {
+            "packages": ["ipython", "PIL"]
+        },
+        "my2site2" : {
+        },
+        "my2site3" : {
+            "packages": ["ipython", "PIL"]
+        },
+        "my2site4" : {
+        }
+    },
+
+    "postgres_password": "postgres",
+
+    "databases": {
+        "my2_database": {
+            "username": "my_user",
+            "password": "password"
+        },
+        "my2_second_database": {
+            "username": "my_user",
+            "password": "password",
+            "gis": true
+        },
+        "my2_database2": {
+            "username": "my_user",
+            "password": "password"
+        },
+        "my2_second_database2": {
+            "username": "my_user",
+            "password": "password",
+            "gis": true
+        }
+    }
+
+}

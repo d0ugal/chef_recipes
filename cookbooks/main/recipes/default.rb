@@ -15,6 +15,14 @@ end
   end
 end
 
+if node[:gis]
+  %w{binutils gdal-bin}.each do |pkg|
+      package pkg do
+        action :install
+      end
+  end
+end
+
 # On a project basis, allow a set of packages to be defined that will be
 # installed at almost the start of the setup process.
 if node.has_key?("system_packages")

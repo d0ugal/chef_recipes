@@ -6,8 +6,8 @@
   end
 end
 
-pg_hba_dev = node.has_key?("dev_env") and node.dev_env
 
+pg_hba_dev = node.has_key?("dev_env") and node.dev_env
 
 if pg_hba_dev
     pg_hba_conf = "/etc/postgresql/8.4/main/pg_hba_dev.conf"
@@ -49,17 +49,64 @@ if node.has_key?("databases")
 
     node.databases.each do |name, info|
 
-        execute "postgres-createuser-#{info[:username]}" do
-            command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
-            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{node['project_db_user']}"
-        end
+      if not info.has_key?("gis") or not info[:gis]
+        next
+      end
 
+      execute "post-gis" do
+          command 'echo "
+      deb http://ppa.launchpad.net/ubuntugis/ubuntugis-unstable/ubuntu lucid main
+      deb-src http://ppa.launchpad.net/ubuntugis/ubuntugis-unstable/ubuntu lucid main" >> /etc/apt/sources.list
+      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 314DF160
+      sudo apt-get update'
+          not_if "sudo cat /etc/apt/sources.list | grep -i ubuntugis-unstable"
+      end
+
+      %w{python-psycopg2 postgresql binutils proj gdal-bin postgresql-8.4-postgis
+          postgresql-server-dev-8.4}.each do |pkg|
+        package pkg do
+          action :install
+        end
+      end
+
+      # It seems Chef's package installer doesn't support virtual packages.
+      execute "gdal-contrib" do
+          command "sudo apt-get install -y gdal-contrib"
+      end
+
+      script "postgres-postgis-template" do
+        interpreter "bash"
+        user "postgres"
+        cwd "/tmp"
+        code "
+        wget http://docs.djangoproject.com/en/1.3/_downloads/create_template_postgis-1.5.sh -O /tmp/create_template_postgis-1.5.sh
+        bash /tmp/create_template_postgis-1.5.sh
+        "
+        not_if "sudo -u postgres -- psql -c \"SELECT datname FROM pg_database where datistemplate=true;\" | grep -i template_postgis"
+      end
+
+      # We only want to do this for the first database with gis enabled.
+      break
+
+    end
+
+    node.databases.each do |name, info|
+
+      execute "postgres-createuser-#{info[:username]}" do
+          command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
+          not_if "sudo -u postgres -- psql -c \"SELECT usename FROM pg_user;\" | grep -i #{info[:username]}"
+      end
+
+      if info.has_key?("gis") and info[:gis]
+        template = "template_postgis"
+      else
         template = "template0"
+      end
 
-        execute "postgres-createdb-#{info[:name]}" do
-            command "sudo -u postgres -- createdb -T #{template} -E UTF8 -O #{info[:username]} #{name}"
-            not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_database;\" | grep -i #{name}"
-        end
+      execute "postgres-createdb-#{info[:name]}" do
+          command "sudo -u postgres -- createdb -T #{template} -E UTF8 -O #{info[:username]} #{name}"
+          not_if "sudo -u postgres -- psql -c \"SELECT datname FROM pg_database;\" | grep -i #{name}"
+      end
 
     end
 
