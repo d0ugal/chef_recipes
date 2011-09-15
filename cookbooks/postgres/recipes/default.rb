@@ -49,42 +49,52 @@ if node.has_key?("databases")
 
     node.databases.each do |name, info|
 
-      # This isn't the best place to put it. Since we could try and install all
-      # the GIS stuff for each database... although given that the package
-      # management stuff is all good this shouldn't be a problem.
-      if info.has_key?("gis") and info[:gis]
-          %w{postgresql-server-dev-8.4 postgresql-8.4-postgis}.each do |pkg|
-            package pkg do
-              action :install
-            end
+      if not info.has_key?("gis") or not info[:gis]
+        next
+      end
+
+      execute "post-gis" do
+          command 'echo "
+      deb http://ppa.launchpad.net/ubuntugis/ubuntugis-unstable/ubuntu lucid main
+      deb-src http://ppa.launchpad.net/ubuntugis/ubuntugis-unstable/ubuntu lucid main" >> /etc/apt/sources.list
+      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 314DF160
+      sudo apt-get update'
+          not_if "sudo cat /etc/apt/sources.list | grep -i ubuntugis-unstable"
+      end
+
+      %w{python-psycopg2 postgresql binutils proj gdal-bin postgresql-8.4-postgis
+          postgresql-server-dev-8.4}.each do |pkg|
+        package pkg do
+          action :install
         end
       end
+
+      # It seems Chef's package installer doesn't support virtual packages.
+      execute "gdal-contrib" do
+          command "sudo apt-get install -y gdal-contrib"
+      end
+
+      script "postgres-postgis-template" do
+        interpreter "bash"
+        user "postgres"
+        cwd "/tmp"
+        code "
+        wget http://docs.djangoproject.com/en/1.3/_downloads/create_template_postgis-1.5.sh -O /tmp/create_template_postgis-1.5.sh
+        bash /tmp/create_template_postgis-1.5.sh
+        "
+        not_if "sudo -u postgres -- psql -c \"SELECT datname FROM pg_database where datistemplate=true;\" | grep -i template_postgis"
+      end
+
+      # We only want to do this for the first database with gis enabled.
+      break
+
+    end
+
+    node.databases.each do |name, info|
 
       execute "postgres-createuser-#{info[:username]}" do
           command "sudo -u postgres -- psql -c \"CREATE ROLE #{info[:username]} NOSUPERUSER CREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD \'#{info[:password]}\';\""
-          not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_user;\" | grep -i #{info[:username]}"
-      end
-
-      template = "template0"
-
-      if info.has_key?("gis") and info[:gis]
-        template_commands = [
-          "createdb -E UTF8 template_postgis -T template0",
-          "createlang -d template_postgis plpgsql",
-          "psql -d postgres -c \"UPDATE pg_database SET datistemplate='true' WHERE datname='template_postgis';\"",
-          "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/postgis.sql",
-          "psql -d template_postgis -f /usr/share/postgresql/8.4/contrib/spatial_ref_sys.sql",
-          "psql -d template_postgis -c \"GRANT ALL ON geometry_columns TO PUBLIC;\"",
-          "psql -d template_postgis -c \"GRANT ALL ON spatial_ref_sys TO PUBLIC;\""
-        ]
-
-        template_commands.each_with_index do |cmd, i|
-          execute "postgis-template-create-step-#{i+1}" do
-            command cmd
-            user "postgres"
-          end
-        end
-
+          not_if "sudo -u postgres -- psql -c \"SELECT usename FROM pg_user;\" | grep -i #{info[:username]}"
       end
 
       if info.has_key?("gis") and info[:gis]
@@ -95,7 +105,7 @@ if node.has_key?("databases")
 
       execute "postgres-createdb-#{info[:name]}" do
           command "sudo -u postgres -- createdb -T #{template} -E UTF8 -O #{info[:username]} #{name}"
-          not_if "sudo -u postgres -- psql -c \"SELECT * FROM pg_database;\" | grep -i #{name}"
+          not_if "sudo -u postgres -- psql -c \"SELECT datname FROM pg_database;\" | grep -i #{name}"
       end
 
     end
