@@ -49,6 +49,7 @@ if node.has_key?("databases")
 
     node.databases.each do |name, info|
 
+      # We are looking for databases with gis enabled. If its not, 'continue'
       if not info.has_key?("gis") or not info[:gis]
         next
       end
