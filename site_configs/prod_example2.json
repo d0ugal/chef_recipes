@@ -1,5 +1,7 @@
 {
-    "run_list": [ "main", "python", "postgres"],
+    "run_list": [ "main", "python", "postgres", "nginx"],
+
+    "project_name": "enterprise",
 
     "user": {
         "username": "enterprise_user",
@@ -39,6 +41,32 @@
             "password": "password",
             "gis": true
         }
-    }
+    },
 
+    "servers" : {
+        "enterprise_app1" : {
+            "domains" : "ncc1701.com *.ncc1701.com",
+            "app_servers": [
+                {
+                    "name": "blog",
+                    "location": "/"
+                },
+                {
+                    "name": "wiki",
+                    "location": "/wiki",
+                    "socket_path": "/tmp/my_socket.gunicorn.sock"
+                }
+            ],
+            "static_dirs": [
+                {
+                    "location": "/media",
+                    "path": "/sites/media"
+                },
+                {
+                    "location": "/static",
+                    "path": "/ites/static"
+                }
+            ]
+        }
+    }
 }

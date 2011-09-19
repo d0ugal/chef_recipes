@@ -1,0 +1,47 @@
+<% node[:servers].each do |name, server_info| %>
+    <% if server_info[:app_servers] %>
+        <% server_info[:app_servers].each do |app_server| %>
+            upstream app_server_<%= name %>_<%= app_server[:name] %> {
+                <% if app_server[:socket_path] %>
+                server unix:<%= app_server[:socket_path] %> fail_timeout=0;
+                <% else %>
+                server unix:/tmp/<%= app_server[:name] %>.gunicorn.sock fail_timeout=0;
+                <% end %>
+            }
+        <% end %>
+    <% end %>
+<% end %>
+
+<% node[:servers].each do |name, server_info| %>
+server {
+
+	server_name <%= server_info[:domains] %>;
+
+    access_log /var/log/nginx/<%= name %>/access.log;
+    error_log /var/log/nginx/<%= name %>/error.log;
+
+    <% if server_info[:app_servers] %>
+        <% server_info[:app_servers].each do |app_server| %>
+        location <%= app_server[:location] %> {
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
+            proxy_redirect off;
+
+            if (!-f $request_filename) {
+                proxy_pass http://app_server_<%= name %>_<%= app_server[:name] %>;
+                break;
+            }
+        }
+        <% end %>
+    <% end %>
+
+    <% if server_info[:static_dirs] %>
+        <% server_info[:static_dirs].each do |static_dir| %>
+        location <%= static_dir[:location] %> {
+            root <%= static_dir[:path] %>;
+        }
+        <% end %>
+    <% end %>
+
+}
+<% end %>
