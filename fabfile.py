@@ -21,7 +21,7 @@ def install_chef():
     sudo('apt-get -y update', pty=True)
     sudo('apt-get -y -q install libopenssl-ruby')
     sudo('apt-get -y -q install git-core rubygems ruby ruby-dev', pty=True)
-    sudo('gem install chef --no-ri --no-rdoc', pty=True)
+    sudo('if ! gem list | grep chef; then gem install chef --no-ri --no-rdoc; fi', pty=True)
     sudo('mkdir -p %s' % env.remote_project_dir)
     sudo('chown %s %s' % (env.user, env.remote_project_dir))
 
@@ -46,8 +46,9 @@ def update_all_sites():
     import os
     sync_config()
     for site in [f for f in os.listdir(env.site_configs) if f.endswith('.json')]:
-        print site
+        print "-- Updating", site
         _update_site(site)
+        print "-- Updated", site
 
 @task
 def update_site(site):
@@ -61,4 +62,4 @@ def sites():
     import os
 
     for site in os.listdir(env.site_configs):
-        print site
+        print '--', site
