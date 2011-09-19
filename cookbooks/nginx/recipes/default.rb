@@ -17,27 +17,31 @@ cookbook_file "/etc/nginx/nginx.conf" do
     notifies :restart, resources(:service => "nginx")
 end
 
-if node.has_key?("domain_names") and node.has_key?("project_name")
+if node.has_key?("servers")
 
-    directory "/var/log/nginx/#{node[:project_name]}" do
-        owner "root"
-        group "root"
-        mode 0775
-        recursive true
-    end
+    node.servers.each do |name, server_info|
 
-    template "/etc/nginx/sites-available/#{node[:project_name]}" do
-        source "site.erb"
-        mode 0640
-        owner "root"
-        group "root"
-        notifies :restart, resources(:service => "nginx")
-    end
+        directory "/var/log/nginx/#{name}" do
+            owner "root"
+            group "root"
+            mode 0775
+            recursive true
+        end
 
-    execute "nginx-symlink" do
-        command "sudo ln -s /etc/nginx/sites-available/#{node[:project_name]} /etc/nginx/sites-enabled/#{node[:project_name]}"
-        not_if "sudo ls /etc/nginx/sites-enabled/#{node[:project_name]}"
-        notifies :restart, resources(:service => "nginx")
+        template "/etc/nginx/sites-available/#{node[:project_name]}" do
+            source "site.erb"
+            mode 0640
+            owner "root"
+            group "root"
+            notifies :restart, resources(:service => "nginx")
+        end
+
+        execute "nginx-symlink" do
+            command "sudo ln -s /etc/nginx/sites-available/#{node[:project_name]} /etc/nginx/sites-enabled/#{node[:project_name]}"
+            not_if "sudo ls /etc/nginx/sites-enabled/#{node[:project_name]}"
+            notifies :restart, resources(:service => "nginx")
+        end
+
     end
 
 end

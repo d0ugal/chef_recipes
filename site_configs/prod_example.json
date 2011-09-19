@@ -1,5 +1,7 @@
 {
-    "run_list": [ "main", "python", "postgres"],
+    "run_list": [ "main", "python", "postgres", "nginx"],
+
+    "project_name": "Bliki",
 
     "user": {
         "username": "pug_user",
@@ -25,6 +27,35 @@
             "password": "wiki_password",
             "gis": true
         }
-    }
+    },
 
+    "servers" : {
+        "bliki" : {
+            "domains" : "bliki.com *.bliki.com",
+            "app_servers": [
+                {
+                    "name": "blog",
+                    "location": "/"
+                },
+                {
+                    "name": "wiki",
+                    "location": "/wiki",
+                    "socket_path": "/tmp/my_socket.gunicorn.sock"
+                }
+            ]
+        },
+        "bliki_media" : {
+            "domains" : "media.bliki.com",
+           "static_dirs": [
+                {
+                    "location": "/media",
+                    "path": "/sites/media"
+                },
+                {
+                    "location": "/static",
+                    "path": "/ites/static"
+                }
+            ]
+        }
+    }
 }
