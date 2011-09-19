@@ -1,8 +1,12 @@
 """
+A simple test harness to run the all of the cookbooks against a fresh EC2
+instance.
+
 Warning. This file contains a few hacks. None of the code should be used in a
 production like setting and should only be used for testing/working on the
 recepies defined in this project.
 """
+import argparse
 import os
 import sys
 import tempfile
@@ -10,7 +14,7 @@ import time
 
 from boto.ec2 import EC2Connection, get_region
 from boto.exception import EC2ResponseError
-from fabric.api import env, settings, run, hide
+from fabric.api import env, settings, run
 from fabric.network import disconnect_all
 from unipath import Path
 
@@ -107,6 +111,9 @@ def create_vm():
 
 class TestRunner(object):
 
+    def __init__(self, bash_on_error=False):
+        self.bash_on_error = bash_on_error
+
     def test(self, host_string, user, key_pair, key_filename):
 
         print "HOST:", host_string
@@ -119,10 +126,11 @@ class TestRunner(object):
 
         with settings(host_string=host_string, key_filename=key_filename, user=user):
 
-            try:
-                with hide():#'stdout',):
+            repeats = 2
+            for i in range(repeats):
+                try:
 
-                    print 'OK! Started.'
+                    print 'Stated chef run {0} of {1}'.format(i, repeats)
 
                     install_chef()
                     print "-- Chef installed."
@@ -130,12 +138,18 @@ class TestRunner(object):
                     update_all_sites()
                     print "-- Full update."
 
-                    update_all_sites()
-                    print "-- SECOND Full update."
-            except:
-                print "Something went wrong, lets jump to bash."
-                run('bash')
-                raise
+                except:
+                    print "*" * 79
+                    print "Chef run failed."
+                else:
+                    print "*" * 79
+                    print "Finished."
+                finally:
+                    print "*" * 79
+
+                    if self.bash_on_error:
+                        print "Starting a bash session."
+                        run('bash')
 
 
     def tear_down(self):
@@ -162,5 +176,13 @@ class TestRunner(object):
             self.tear_down()
 
 
-t = TestRunner()
-t.run_tests()
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--bash', action='store_true',
+        help="Start a bash session in the remote server if there is an error.")
+
+    bash = parser.parse_args().bash
+
+    t = TestRunner(bash_on_error=bash)
+    t.run_tests()
