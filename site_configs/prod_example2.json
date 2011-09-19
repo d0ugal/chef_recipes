@@ -1,0 +1,72 @@
+{
+    "run_list": [ "main", "python", "postgres", "nginx"],
+
+    "project_name": "enterprise",
+
+    "user": {
+        "username": "enterprise_user",
+        "password": "enterprise_password",
+        "group": "app_users"
+    },
+
+    "virtualenvs": {
+        "enterprise_app1" : {
+            "packages": ["ipython", "PIL"]
+        },
+        "enterprise_app2" : {
+        },
+        "enterprise_app3" : {
+            "packages": ["ipython", "PIL    "]
+        },
+        "enterprise_app4" : {
+        }
+    },
+
+    "databases": {
+        "enterprise_database1": {
+            "username": "enterprise_user",
+            "password": "password"
+        },
+        "enterprise_database2": {
+            "username": "enterprise_user",
+            "password": "password",
+            "gis": true
+        },
+        "enterprise_database3": {
+            "username": "enterprise_user",
+            "password": "password"
+        },
+        "enterprise_database4": {
+            "username": "enterprise_user",
+            "password": "password",
+            "gis": true
+        }
+    },
+
+    "servers" : {
+        "enterprise_app1" : {
+            "domains" : "ncc1701.com *.ncc1701.com",
+            "app_servers": [
+                {
+                    "name": "blog",
+                    "location": "/"
+                },
+                {
+                    "name": "wiki",
+                    "location": "/wiki",
+                    "socket_path": "/tmp/my_socket.gunicorn.sock"
+                }
+            ],
+            "static_dirs": [
+                {
+                    "location": "/media",
+                    "path": "/sites/media"
+                },
+                {
+                    "location": "/static",
+                    "path": "/ites/static"
+                }
+            ]
+        }
+    }
+}

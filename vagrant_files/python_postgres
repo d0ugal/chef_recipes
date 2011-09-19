@@ -14,15 +14,12 @@ Vagrant::Config.run do |config|
     chef.add_recipe "main"
     chef.add_recipe "python"
     chef.add_recipe "postgres"
+    chef.add_recipe "nginx"
 
     chef.json.merge!({
-
-      :project_name => "PROJECT_NAME",
-
-      :system_packages => [],
-      :python_global_packages => [],
-      :python_packages => [],
-
+      :development_environment => true,
+      :project_name => "local",
+      :postgres_password => "postgres"
     })
 
   end

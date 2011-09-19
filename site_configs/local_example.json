@@ -1,0 +1,6 @@
+{
+    "run_list": [ "main", "python", "postgres", "nginx"],
+    "project_name": "local",
+    "development_environment": true,
+    "postgres_password": "postgres"
+}
