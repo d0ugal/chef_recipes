@@ -1,6 +1,6 @@
 # We give away straight off that while this is a postgres recipe, its a
 # postgres recipe for Python.
-%w{postgresql python-psycopg2}.each do |pkg|
+%w{libpq-dev postgresql python-psycopg2}.each do |pkg|
   package pkg do
     action :install
   end
